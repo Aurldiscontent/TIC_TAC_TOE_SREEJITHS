@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-image: url('https://mir-s3-cdn-cf.behance.net/project_modules/disp/cc4c5131516629.565451f6bd878.png');
+      background-size: 100%;
+    }
+
+    #titleContainer {
+      text-align: center;
+      margin-bottom: 20px;
+      font-family: 'Courier New';
+    }
+
+    #gameContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      gap: 4px;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      border: 2px solid #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .cell:hover {
+      background-color: lightgoldenrodyellow;
+    }
+
+    #message {
+      text-align: center;
+      font-size: 30px;
+      margin-bottom: 10px;
+      color: black;
+      font-family: 'Times New Roman', Times, serif;
+      font-weight: bolder;
+    }
+
+    #modeToggle {
+      font-size: 20px;
+      background-color: lightgoldenrodyellow;
+    }
+  </style>
+  <title>Tic Tac Toe</title>
+</head>
+<body>
+  <div id="titleContainer">
+    <h1>Tic Tac Toe</h1>
+  </div>
+  <div id="gameContainer">
+    <div id="board"></div>
+    <div id="message">Your turn! (Play with AI)</div>
+    <button id="modeToggle">Change Mode</button>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const board = document.getElementById('board');
+      const message = document.getElementById('message');
+      const modeToggle = document.getElementById('modeToggle');
+      const cells = [];
+
+      let currentPlayer = 'X';
+      let gameBoard = ['', '', '', '', '', '', '', '', ''];
+      let gameOver = false;
+      let isAgainstAI = true;
+
+      // Create cells
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.dataset.index = i;
+        cell.addEventListener('click', () => handleCellClick(i));
+        board.appendChild(cell);
+        cells.push(cell);
+      }
+
+      // Handle cell click
+      function handleCellClick(index) {
+        if (gameBoard[index] === '' && !gameOver) {
+          gameBoard[index] = currentPlayer;
+          cells[index].textContent = currentPlayer;
+          if (checkWinner()) {
+            gameOver = true;
+            message.textContent = `${currentPlayer} wins!`;
+          } else if (gameBoard.every(cell => cell !== '')) {
+            gameOver = true;
+            message.textContent = 'It\'s a draw!';
+          } else {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            message.textContent = isAgainstAI ? `${currentPlayer}'s turn (Play with AI)` : `${currentPlayer === 'X' ? 'Player 1' : 'Player 2'}'s turn (Play with Opponent)`;
+
+            if (isAgainstAI && currentPlayer === 'O' && !gameOver) {
+              setTimeout(() => {
+                makeAIMove();
+              }, 500);
+            }
+          }
+        }
+      }
+
+      // Check for a winner
+      function checkWinner() {
+        const winPatterns = [
+          [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+          [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+          [0, 4, 8], [2, 4, 6]             // Diagonals
+        ];
+
+        for (const pattern of winPatterns) {
+          const [a, b, c] = pattern;
+          if (gameBoard[a] !== '' && gameBoard[a] === gameBoard[b] && gameBoard[b] === gameBoard[c]) {
+            highlightWinner(pattern);
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      // Highlight the winning cells
+      function highlightWinner(pattern) {
+        for (const index of pattern) {
+          cells[index].style.backgroundColor = '#66ff66';
+        }
+      }
+
+      // AI makes a move
+      function makeAIMove() {
+        const emptyCells = gameBoard.reduce((acc, value, index) => {
+          if (value === '') {
+            acc.push(index);
+          }
+          return acc;
+        }, []);
+
+        const randomIndex = Math.floor(Math.random() * emptyCells.length);
+        const aiMove = emptyCells[randomIndex];
+
+        handleCellClick(aiMove);
+      }
+
+      // Toggle between AI and Human mode
+      modeToggle.addEventListener('click', () => {
+        isAgainstAI = !isAgainstAI;
+        resetGame();
+      });
+
+      // Reset the game
+      function resetGame() {
+        gameBoard = ['', '', '', '', '', '', '', '', ''];
+        gameOver = false;
+        currentPlayer = 'X';
+
+        cells.forEach(cell => {
+          cell.textContent = '';
+          cell.style.backgroundColor = '';
+        });
+
+        message.textContent = isAgainstAI ? 'Your turn! (Play with AI)' : 'Player 1\'s turn (Play with Opponent)';
+      }
+    });
+  </script>
+</body>
+</html>
